@@ -1,0 +1,35 @@
+name: Terraform
+
+on:
+  push:
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: task1
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: hashicorp/setup-terraform@v2
+
+      - run: terraform init
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET_KEY }}
+
+      - run: terraform validate
+
+      - run: terraform plan
+        env:
+          TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
+          TF_VAR_ssh_fingerprint: ${{ secrets.SSH_FINGERPRINT }}
+
+      - run: terraform apply -auto-approve
+        if: success()
+        env:
+          TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
+          TF_VAR_ssh_fingerprint: ${{ secrets.SSH_FINGERPRINT }}
