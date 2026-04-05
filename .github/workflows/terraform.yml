@@ -7,6 +7,13 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
 
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET_KEY }}
+      TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
+      TF_VAR_ssh_fingerprint: ${{ secrets.SSH_FINGERPRINT }}
+      AWS_DEFAULT_REGION: "us-east-1" 
+
     defaults:
       run:
         working-directory: task1
@@ -16,20 +23,15 @@ jobs:
 
       - uses: hashicorp/setup-terraform@v2
 
-      - run: terraform init
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET_KEY }}
+      - name: Terraform Init
+        run: terraform init
 
-      - run: terraform validate
+      - name: Terraform Validate
+        run: terraform validate
 
-      - run: terraform plan
-        env:
-          TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
-          TF_VAR_ssh_fingerprint: ${{ secrets.SSH_FINGERPRINT }}
+      - name: Terraform Plan
+        run: terraform plan
 
-      - run: terraform apply -auto-approve
-        if: success()
-        env:
-          TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
-          TF_VAR_ssh_fingerprint: ${{ secrets.SSH_FINGERPRINT }}
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' # Безпечніше запускати apply тільки з мейн-гілки
+        run: terraform apply -auto-approve
