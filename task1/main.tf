@@ -26,13 +26,13 @@ provider "digitalocean" {
 }
 
 resource "digitalocean_vpc" "hrynko_vpc" {
-  name     = "hrynko-vpc"
+  name     = "hrynkoo-vpc"
   region   = "fra1"
   ip_range = "10.10.10.0/24"
 }
 
 resource "digitalocean_droplet" "hrynko_node" {
-  name     = "hrynko-node"
+  name     = "hrynkoo-node"
   region   = "fra1"
   size     = "s-2vcpu-4gb"
   image    = "ubuntu-24-04-x64"
@@ -41,7 +41,7 @@ resource "digitalocean_droplet" "hrynko_node" {
 }
 
 resource "digitalocean_firewall" "hrynko_firewall" {
-  name        = "hrynko-firewall"
+  name        = "hrynkoo-firewall"
   droplet_ids = [digitalocean_droplet.hrynko_node.id]
 
   inbound_rule {
