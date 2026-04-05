@@ -1,5 +1,8 @@
 provider "digitalocean" {
   token = var.do_token
+  
+  spaces_access_id  = var.spaces_access_key
+  spaces_secret_key = var.spaces_secret_key
 }
 
 resource "digitalocean_vpc" "vpc" {
@@ -20,7 +23,6 @@ resource "digitalocean_droplet" "node" {
 
 resource "digitalocean_firewall" "fw" {
   name = "hrynko-firewall"
-
   droplet_ids = [digitalocean_droplet.node.id]
 
   inbound_rule {
@@ -57,4 +59,13 @@ resource "digitalocean_firewall" "fw" {
 resource "digitalocean_spaces_bucket" "bucket" {
   name   = "hrynko-bucket"
   region = "fra1"
+}
+
+variable "do_token" {}
+variable "ssh_fingerprint" {}
+variable "spaces_access_key" {}
+variable "spaces_secret_key" {}
+
+output "ip" {
+  value = digitalocean_droplet.node.ipv4_address
 }
