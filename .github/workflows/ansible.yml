@@ -3,15 +3,11 @@ name: "Ansible Deploy"
 on:
   push:
     branches: ["main"]
-  workflow_run:
-    workflows: ["Terraform Deploy"]
-    types: [completed]
   workflow_dispatch:
 
 jobs:
   ansible:
     runs-on: ubuntu-latest
-    
     defaults:
       run:
         working-directory: task2
@@ -22,20 +18,20 @@ jobs:
 
       - name: Set up SSH Key
         run: |
+          # Створюємо файл ключа саме в робочій директорії task2
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > id_rsa
           chmod 600 id_rsa
 
       - name: Install Ansible
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ansible
+        run: sudo apt-get update && sudo apt-get install -y ansible
 
       - name: Ansible Check Mode (Dry Run)
         run: |
           ansible-playbook -i inventory.ini setup.yml --check \
           -e "ansible_host=${{ secrets.VM_IP }}" \
           --private-key id_rsa \
-          --ssh-common-args='-o StrictHostKeyChecking=no'
+          --ssh-common-args='-o StrictHostKeyChecking=no' \
+          -vvv
         env:
           ANSIBLE_HOST_KEY_CHECKING: False
 
