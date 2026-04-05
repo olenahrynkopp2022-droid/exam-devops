@@ -4,5 +4,6 @@ variable "do_token" {
 }
 
 variable "ssh_fingerprint" {
-  type = string
+  description = "DigitalOcean SSH key fingerprint"
+  type        = string
 }
