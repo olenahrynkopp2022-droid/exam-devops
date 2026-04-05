@@ -1,0 +1,12 @@
+replicaCount: 2
+
+image:
+  tag: "<release_image_tag>"
+  pullPolicy: Always
+
+service:
+  port: "<release_port>"
+
+django:
+  debug: "False"
+  allowedHosts: "*"

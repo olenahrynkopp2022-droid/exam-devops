@@ -1,0 +1,62 @@
+name: Deploy App
+
+on:
+  push:
+    branches: [develop]
+    tags:
+      - "1.0.0"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 🔑 SETUP SSH
+      - name: Setup SSH
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > id_rsa
+          chmod 600 id_rsa
+
+      # 🔧 SET PARAMS (визначаємо змінні на початку)
+      - name: Set variables
+        id: vars
+        run: |
+          if [[ "${GITHUB_REF}" == "refs/heads/develop" ]]; then
+            echo "ENV=dev" >> $GITHUB_OUTPUT
+            echo "PORT=8002" >> $GITHUB_OUTPUT
+          else
+            echo "ENV=release" >> $GITHUB_OUTPUT
+            echo "PORT=8003" >> $GITHUB_OUTPUT
+          fi
+
+      # 🐳 BUILD (враховуємо шлях до Dockerfile)
+
+      - name: Build Docker
+        run: |
+          docker build -t ${{ secrets.DOCKER_USER }}/devops-app:${{ github.ref_name }} \
+            -f ./task3/devops-exam-pt2/Dockerfile \
+            ./task3/devops-exam-pt2
+      # 🔐 LOGIN & PUSH
+      - name: Login and Push
+        run: |
+          echo "${{ secrets.DOCKER_PASS }}" | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
+          docker push ${{ secrets.DOCKER_USER }}/devops-app:${{ github.ref_name }}
+
+      # 🚀 DEPLOY
+      - name: Deploy to VM
+        run: |
+          # Копіюємо тільки необхідні для K8s файли та скрипт (без коду застосунку, бо він уже в Docker-образі)
+          ssh -i id_rsa -o StrictHostKeyChecking=no root@${{ secrets.VM_IP }} "mkdir -p /root/task3/k8s"
+          scp -i id_rsa -o StrictHostKeyChecking=no task3/deploy.sh root@${{ secrets.VM_IP }}:/root/task3/
+          scp -i id_rsa -o StrictHostKeyChecking=no task3/k8s/*.yaml root@${{ secrets.VM_IP }}:/root/task3/k8s/
+
+          ssh -i id_rsa -o StrictHostKeyChecking=no root@${{ secrets.VM_IP }} << EOF
+            cd /root/task3
+            chmod +x deploy.sh
+            ./deploy.sh ${{ steps.vars.outputs.ENV }} \
+              ${{ secrets.DOCKER_USER }}/devops-app:${{ github.ref_name }} \
+              ${{ steps.vars.outputs.PORT }}
+          EOF
