@@ -62,12 +62,32 @@ resource "digitalocean_firewall" "hrynko_firewall" {
     source_addresses = ["0.0.0.0/0", "::/0"]
   }
 
+  # ОКРЕМІ ПРАВИЛА ДЛЯ КОЖНОГО ПОРТУ
   inbound_rule {
     protocol         = "tcp"
-    port_range       = "8000-8003"
+    port_range       = "8000"
     source_addresses = ["0.0.0.0/0", "::/0"]
   }
 
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "8001"
+    source_addresses = ["0.0.0.0/0", "::/0"]
+  }
+
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "8002"
+    source_addresses = ["0.0.0.0/0", "::/0"]
+  }
+
+  inbound_rule {
+    protocol         = "tcp"
+    port_range       = "8003"
+    source_addresses = ["0.0.0.0/0", "::/0"]
+  }
+
+  # Outbound правила
   outbound_rule {
     protocol              = "tcp"
     port_range            = "1-65535"
