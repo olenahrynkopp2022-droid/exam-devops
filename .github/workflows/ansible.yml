@@ -4,10 +4,17 @@ on:
   push:
     branches: ["main"]
   workflow_dispatch:
+  # Додаємо зв'язок із Terraform, щоб Ansible запускався автоматично після нього
+  workflow_run:
+    workflows: ["Terraform Deploy"]
+    types: [completed]
 
 jobs:
   ansible:
     runs-on: ubuntu-latest
+    # Виконуємо лише якщо Terraform завершився успішно (якщо запуск через workflow_run)
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+    
     defaults:
       run:
         working-directory: task2
@@ -18,24 +25,26 @@ jobs:
 
       - name: Set up SSH Key
         run: |
-          # Створюємо файл ключа саме в робочій директорії task2
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > id_rsa
+          # ВАЖЛИВО: tr -d '\r' видаляє приховані символи Windows, які ламають ключ при копіюванні
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > id_rsa
           chmod 600 id_rsa
 
       - name: Install Ansible
-        run: sudo apt-get update && sudo apt-get install -y ansible
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ansible
 
       - name: Ansible Check Mode (Dry Run)
         run: |
           ansible-playbook -i inventory.ini setup.yml --check \
           -e "ansible_host=${{ secrets.VM_IP }}" \
           --private-key id_rsa \
-          --ssh-common-args='-o StrictHostKeyChecking=no' \
-          -vvv
+          --ssh-common-args='-o StrictHostKeyChecking=no'
         env:
           ANSIBLE_HOST_KEY_CHECKING: False
 
       - name: Ansible Playbook Apply
+        # Цей крок спрацює тільки якщо Check Mode пройшов без помилок
         if: success()
         run: |
           ansible-playbook -i inventory.ini setup.yml \
