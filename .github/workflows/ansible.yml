@@ -10,19 +10,22 @@ on:
 jobs:
   ansible:
     runs-on: ubuntu-latest
+    
+    # Додаємо робочу директорію за замовчуванням для всіх кроків (steps)
+    defaults:
+      run:
+        working-directory: task2
+
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up SSH Key
         run: |
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > task2/id_rsa
-          chmod 600 task2/id_rsa
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > id_rsa
+          chmod 600 id_rsa
 
       - name: Install Ansible
-        run: sudo apt-get install -y ansible
-
-      - name: Ansible Lint / Syntax Check
-        run: ansible-playbook task2/setup.yml --syntax-check
+        run: sudo apt-get update && sudo apt-get install -y ansible
 
       - name: Ansible Check Mode (Dry Run)
         run: |
