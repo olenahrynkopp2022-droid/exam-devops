@@ -23,9 +23,9 @@ jobs:
 
       - name: Set up SSH Key
         run: |
-          # tr -d '\r' видаляє Windows-символи, які ламають ED25519 ключі
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > id_rsa
-          chmod 600 id_rsa
+          # tr -d '\r' — це магічна команда, яка робить ключ "робочим" для Ansible
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > task2/id_rsa
+          chmod 600 task2/id_rsa
 
       - name: Install Ansible
         run: |
