@@ -1,0 +1,21 @@
+name: "Terraform Destroy"
+
+on:
+  workflow_dispatch:
+
+jobs:
+  destroy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.SPACES_ACCESS_KEY }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.SPACES_SECRET_KEY }}
+      TF_VAR_do_token: ${{ secrets.DO_TOKEN }}
+      TF_VAR_ssh_fingerprint: ${{ secrets.SSH_FINGERPRINT }}
+    defaults:
+      run:
+        working-directory: task1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - run: terraform init
+      - run: terraform destroy -auto-approve
