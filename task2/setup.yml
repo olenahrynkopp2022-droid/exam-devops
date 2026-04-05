@@ -1,0 +1,57 @@
+---
+- name: Setup Kubernetes Environment
+  hosts: all
+  become: yes
+  tasks:
+    - name: Update apt and install dependencies
+      apt:
+        name:
+          [
+            apt-transport-https,
+            ca-certificates,
+            curl,
+            gnupg,
+            conntrack,
+            socat,
+            docker.io,
+          ]
+        update_cache: yes
+        state: present
+
+    - name: Add user to docker group
+      user:
+        name: ubuntu
+        groups: docker
+        append: yes
+
+    - name: Install Minikube & Tools
+      get_url:
+        url: "{{ item.url }}"
+        dest: "{{ item.dest }}"
+        mode: "0755"
+      loop:
+        - {
+            url: "https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64",
+            dest: "/usr/local/bin/minikube",
+          }
+        - {
+            url: "https://dl.k8s.io/release/v1.30.0/bin/linux/amd64/kubectl",
+            dest: "/usr/local/bin/kubectl",
+          }
+
+    - name: Install Helm
+      shell: curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      args:
+        creates: /usr/local/bin/helm
+
+    - name: Start Minikube
+      become: no
+      shell: sg docker -c "minikube start --driver=docker --listen-address=0.0.0.0"
+      args:
+        creates: /home/ubuntu/.kube/config
+
+    - name: Setup Kubectl Proxy (Requirement)
+      become: no
+      shell: nohup kubectl proxy --address='0.0.0.0' --accept-hosts='^*$' > /home/ubuntu/proxy.log 2>&1 &
+      async: 10
+      poll: 0

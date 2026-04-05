@@ -1,0 +1,42 @@
+name: "Ansible Deploy"
+
+on:
+  push:
+    branches: ["main"]
+  workflow_run:
+    workflows: ["Terraform Deploy"]
+    types: [completed]
+
+jobs:
+  ansible:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up SSH Key
+        run: |
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > task2/id_rsa
+          chmod 600 task2/id_rsa
+
+      - name: Install Ansible
+        run: sudo apt-get install -y ansible
+
+      - name: Ansible Lint / Syntax Check
+        run: ansible-playbook task2/setup.yml --syntax-check
+
+      - name: Ansible Check Mode (Dry Run)
+        run: |
+          ansible-playbook -i inventory.ini setup.yml --check \
+          --ssh-common-args='-o StrictHostKeyChecking=no'
+        env:
+          VM_IP: ${{ secrets.VM_IP }}
+          ANSIBLE_HOST_KEY_CHECKING: False
+
+      - name: Ansible Playbook Apply
+        if: success()
+        run: |
+          ansible-playbook -i inventory.ini setup.yml \
+          --ssh-common-args='-o StrictHostKeyChecking=no'
+        env:
+          VM_IP: ${{ secrets.VM_IP }}
+          ANSIBLE_HOST_KEY_CHECKING: False
