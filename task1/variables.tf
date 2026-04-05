@@ -1,2 +1,8 @@
-variable "do_token" {}
-variable "ssh_fingerprint" {}
+variable "do_token" {
+  type      = string
+  sensitive = true
+}
+
+variable "ssh_fingerprint" {
+  type = string
+}
