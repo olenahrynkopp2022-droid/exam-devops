@@ -1,3 +1,3 @@
 output "ip" {
-  value = digitalocean_droplet.node.ipv4_address
+  value = digitalocean_droplet.hrynkoo_node.ipv4_address
 }
