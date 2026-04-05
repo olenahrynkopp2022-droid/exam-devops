@@ -25,24 +25,24 @@ provider "digitalocean" {
   token = var.do_token
 }
 
-resource "digitalocean_vpc" "hrynko_vpc" {
+resource "digitalocean_vpc" "hrynkoo_vpc" {
   name     = "hrynkoo-vpc"
   region   = "fra1"
   ip_range = "10.10.10.0/24"
 }
 
-resource "digitalocean_droplet" "hrynko_node" {
+resource "digitalocean_droplet" "hrynkoo_node" {
   name     = "hrynkoo-node"
   region   = "fra1"
   size     = "s-2vcpu-4gb"
   image    = "ubuntu-24-04-x64"
-  vpc_uuid = digitalocean_vpc.hrynko_vpc.id
+  vpc_uuid = digitalocean_vpc.hrynkoo_vpc.id
   ssh_keys = [var.ssh_fingerprint]
 }
 
-resource "digitalocean_firewall" "hrynko_firewall" {
+resource "digitalocean_firewall" "hrynkoo_firewall" {
   name        = "hrynkoo-firewall"
-  droplet_ids = [digitalocean_droplet.hrynko_node.id]
+  droplet_ids = [digitalocean_droplet.hrynkoo_node.id]
 
   inbound_rule {
     protocol         = "tcp"
