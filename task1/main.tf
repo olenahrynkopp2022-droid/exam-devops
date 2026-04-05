@@ -37,8 +37,7 @@ resource "digitalocean_droplet" "hrynko_node" {
   size     = "s-2vcpu-4gb"
   image    = "ubuntu-24-04-x64"
   vpc_uuid = digitalocean_vpc.hrynko_vpc.id
-  ssh_keys = [var.ssh_fingerprint]
-}
+  ssh_keys = [var.ssh_fingerprint]}
 
 resource "digitalocean_firewall" "hrynko_firewall" {
   name        = "hrynko-firewall"
