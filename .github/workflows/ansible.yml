@@ -23,9 +23,9 @@ jobs:
 
       - name: Set up SSH Key
         run: |
-          # tr -d '\r' — це магічна команда, яка робить ключ "робочим" для Ansible
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > task2/id_rsa
-          chmod 600 task2/id_rsa
+          # Ми вже в папці task2, тому створюємо файл просто тут
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" | tr -d '\r' > id_rsa
+          chmod 600 id_rsa
 
       - name: Install Ansible
         run: |
