@@ -6,6 +6,7 @@ on:
   workflow_run:
     workflows: ["Terraform Deploy"]
     types: [completed]
+  workflow_dispatch:
 
 jobs:
   ansible:
@@ -16,22 +17,24 @@ jobs:
         working-directory: task2
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Set up SSH Key
         run: |
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > id_rsa
           chmod 600 id_rsa
 
-      - name: Prepare Inventory
-        run: sed -i "s/TARGET_IP/${{ secrets.VM_IP }}/g" inventory.ini
-
       - name: Install Ansible
-        run: sudo apt-get update && sudo apt-get install -y ansible
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ansible
 
       - name: Ansible Check Mode (Dry Run)
         run: |
           ansible-playbook -i inventory.ini setup.yml --check \
+          -e "ansible_host=${{ secrets.VM_IP }}" \
+          --private-key id_rsa \
           --ssh-common-args='-o StrictHostKeyChecking=no'
         env:
           ANSIBLE_HOST_KEY_CHECKING: False
@@ -40,6 +43,8 @@ jobs:
         if: success()
         run: |
           ansible-playbook -i inventory.ini setup.yml \
+          -e "ansible_host=${{ secrets.VM_IP }}" \
+          --private-key id_rsa \
           --ssh-common-args='-o StrictHostKeyChecking=no'
         env:
           ANSIBLE_HOST_KEY_CHECKING: False
