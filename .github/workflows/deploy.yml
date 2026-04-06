@@ -4,7 +4,8 @@ on:
   push:
     branches: [develop]
     tags:
-      - "1.0.0"
+      - "*" # Спрацьовує на будь-який тег
+  workflow_dispatch: # Дозволяє запускати пайплайн вручну з вкладки Actions
 
 jobs:
   deploy:
@@ -50,7 +51,7 @@ jobs:
         run: |
           # 1. Створюємо структуру папок на сервері
           ssh -i id_rsa -o StrictHostKeyChecking=no root@${{ secrets.VM_IP }} "mkdir -p /root/task3/k8s"
-          
+
           # 2. Копіюємо скрипт деплою та маніфести Kubernetes
           scp -i id_rsa -o StrictHostKeyChecking=no task3/deploy.sh root@${{ secrets.VM_IP }}:/root/task3/
           scp -i id_rsa -o StrictHostKeyChecking=no task3/k8s/*.yaml root@${{ secrets.VM_IP }}:/root/task3/k8s/
