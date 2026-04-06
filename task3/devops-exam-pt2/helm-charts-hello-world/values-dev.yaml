@@ -1,0 +1,15 @@
+replicaCount: 1
+
+image:
+  tag: "<dev_image_tag>"
+
+service:
+  port: "<dev_port>"
+
+appConfig:
+  debug: "True"
+
+django:
+  debug: "True"
+  allowedHosts: "*"
+
