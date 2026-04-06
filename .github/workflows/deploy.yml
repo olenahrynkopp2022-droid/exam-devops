@@ -14,17 +14,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 🔑 SETUP SSH
+      # 🔑 НАЛАШТУВАННЯ SSH
       - name: Setup SSH
         run: |
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > id_rsa
           chmod 600 id_rsa
 
-      # 🔧 SET PARAMS (визначаємо змінні на початку)
+      # 🔧 ПАРАМЕТРИЗАЦІЯ (вимога: різні порти та оточення)
       - name: Set variables
         id: vars
         run: |
-          if [[ "${GITHUB_REF}" == "refs/heads/develop" ]]; then
+          if [[ "${{ github.ref }}" == refs/heads/develop ]]; then
             echo "ENV=dev" >> $GITHUB_OUTPUT
             echo "PORT=8002" >> $GITHUB_OUTPUT
           else
@@ -32,30 +32,34 @@ jobs:
             echo "PORT=8003" >> $GITHUB_OUTPUT
           fi
 
-      # 🐳 BUILD (враховуємо шлях до Dockerfile)
-
+      # 🐳 ЗБІРКА DOCKER ОБРАЗУ
       - name: Build Docker
         run: |
           docker build -t ${{ secrets.DOCKER_USER }}/devops-app:${{ github.ref_name }} \
             -f ./task3/devops-exam-pt2/Dockerfile \
             ./task3/devops-exam-pt2
-      # 🔐 LOGIN & PUSH
+
+      # 🔐 АВТОРИЗАЦІЯ ТА ПУШ В РЕЄСТР
       - name: Login and Push
         run: |
           echo "${{ secrets.DOCKER_PASS }}" | docker login -u ${{ secrets.DOCKER_USER }} --password-stdin
           docker push ${{ secrets.DOCKER_USER }}/devops-app:${{ github.ref_name }}
 
-      # 🚀 DEPLOY
+      # 🚀 РОЗГОРТАННЯ (CD)
       - name: Deploy to VM
         run: |
-          # Копіюємо тільки необхідні для K8s файли та скрипт (без коду застосунку, бо він уже в Docker-образі)
+          # 1. Створюємо структуру папок на сервері
           ssh -i id_rsa -o StrictHostKeyChecking=no root@${{ secrets.VM_IP }} "mkdir -p /root/task3/k8s"
+          
+          # 2. Копіюємо скрипт деплою та маніфести Kubernetes
           scp -i id_rsa -o StrictHostKeyChecking=no task3/deploy.sh root@${{ secrets.VM_IP }}:/root/task3/
           scp -i id_rsa -o StrictHostKeyChecking=no task3/k8s/*.yaml root@${{ secrets.VM_IP }}:/root/task3/k8s/
 
+          # 3. Запуск скрипта розгортання безпосередньо на сервері
           ssh -i id_rsa -o StrictHostKeyChecking=no root@${{ secrets.VM_IP }} << EOF
             cd /root/task3
             chmod +x deploy.sh
+            # Передаємо: $ENV (dev/release), $IMAGE (з тегом), $PORT (8002/8003)
             ./deploy.sh ${{ steps.vars.outputs.ENV }} \
               ${{ secrets.DOCKER_USER }}/devops-app:${{ github.ref_name }} \
               ${{ steps.vars.outputs.PORT }}
