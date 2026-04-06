@@ -4,10 +4,9 @@ metadata:
   name: app-service
   namespace: {{NAMESPACE}}
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: myapp
   ports:
     - port: 8000
       targetPort: 8000
-      nodePort: {{PORT}}
