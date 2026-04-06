@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: app
-  namespace: {{ NAMESPACE }}
+  namespace: {{NAMESPACE}}
 spec:
   replicas: 1
   selector:
@@ -15,6 +15,6 @@ spec:
     spec:
       containers:
         - name: app
-          image: {{ IMAGE }}
+          image: {{IMAGE}}
           ports:
             - containerPort: 8000
