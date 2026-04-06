@@ -2,7 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: app-service
-  namespace: { { NAMESPACE } }
+  namespace: {{ NAMESPACE }}
 spec:
   type: NodePort
   selector:
@@ -10,4 +10,4 @@ spec:
   ports:
     - port: 8000
       targetPort: 8000
-      nodePort: { { PORT } }
+      nodePort: {{ PORT }}
