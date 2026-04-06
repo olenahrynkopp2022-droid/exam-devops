@@ -50,9 +50,11 @@ if [ -not -z "$old_pf_pid" ]; then
     kill -9 $old_pf_pid
 fi
 
-# Запускаємо новий port-forward у фоні
-# --address 0.0.0.0 дозволяє підключатися зовні до IP сервера
-nohup kubectl port-forward --address 0.0.0.0 -n $ENV service/app-service $PORT:8000 > pf_$ENV.log 2>&1 &
+# Вбиваємо всі старі процеси, щоб не було конфлікту портів
+fuser -k 8002/tcp || true
+fuser -k 8003/tcp || true
 
+# Запускаємо з повним шляхом до kubectl і логуванням помилок
+nohup kubectl port-forward --address 0.0.0.0 -n $ENV service/app-service $PORT:8000 > /root/task3/pf_$ENV.log 2>&1 &
 echo "Deploy DONE ✅"
 echo "App should be available at http://<VM_IP>:$PORT"
